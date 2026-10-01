@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LA CABRA — The Goat Operating System</title>
+<meta name="theme-color" content="#0b0c0d">
+<style>
+:root{
+  --bg:#090a0b; --panel:#111315; --panel2:#15181b; --text:#f6f1e7;
+  --muted:#aaa49b; --gold:#c7a467; --gold2:#ead29d; --line:rgba(255,255,255,.10);
+  --soft:rgba(255,255,255,.045); --shadow:0 28px 80px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:
+radial-gradient(circle at 12% 5%,rgba(199,164,103,.13),transparent 28%),
+radial-gradient(circle at 90% 15%,rgba(255,255,255,.045),transparent 22%),
+linear-gradient(180deg,#08090a,#0e1012 48%,#08090a);
+color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;background-image:
+linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:52px 52px}
+.shell{width:min(1180px,calc(100% - 34px));margin:auto}
+nav{position:sticky;top:0;z-index:50;background:rgba(8,9,10,.78);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.nav{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:.14em}
+.logo{width:36px;height:36px;border:1px solid rgba(234,210,157,.45);border-radius:50%;display:grid;place-items:center}
+nav a{color:var(--muted);text-decoration:none;font-size:.85rem;margin-left:16px}
+nav a:hover{color:#fff}
+.hero{min-height:88vh;display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center;padding:76px 0}
+.eyebrow{text-transform:uppercase;letter-spacing:.24em;color:var(--gold2);font-size:.73rem;font-weight:900}
+h1{font-size:clamp(4.4rem,11vw,9rem);line-height:.83;letter-spacing:-.075em;margin:12px 0 0;font-weight:950}
+h1 span{color:transparent;-webkit-text-stroke:1px rgba(246,241,231,.45)}
+.hero p{max-width:670px;color:var(--muted);font-size:1.15rem;line-height:1.75}
+.quote{font-family:Georgia,serif;font-size:1.4rem;line-height:1.55;border-left:2px solid var(--gold);padding-left:18px;margin:28px 0}
+.btns{display:flex;flex-wrap:wrap;gap:11px}
+button,.btn{border:0;border-radius:999px;padding:14px 21px;font-weight:850;cursor:pointer;font:inherit;text-decoration:none}
+.primary{background:var(--gold2);color:#15110b}
+.secondary{background:transparent;color:#fff;border:1px solid var(--line)}
+.visual{min-height:560px;position:relative;border:1px solid var(--line);border-radius:34px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.02));box-shadow:var(--shadow)}
+.visual .moon{position:absolute;right:10%;top:7%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 40% 40%,rgba(234,210,157,.42),rgba(199,164,103,.08) 60%,transparent 70%)}
+.visual .goat{position:absolute;z-index:4;right:20%;top:26%;width:120px;height:120px;border:1px solid rgba(234,210,157,.38);border-radius:50%;display:grid;place-items:center;font-size:52px;background:rgba(7,8,9,.76);box-shadow:0 0 0 16px rgba(199,164,103,.04),0 0 60px rgba(199,164,103,.13)}
+.visual svg{position:absolute;left:0;bottom:0;width:100%;height:78%}
+.vertical{position:absolute;left:20px;top:24px;writing-mode:vertical-rl;letter-spacing:.28em;color:rgba(255,255,255,.2);font-size:.72rem;font-weight:900}
+section{padding:92px 0}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:30px;margin-bottom:34px}
+.section-head h2{margin:0;font-size:clamp(2.6rem,5vw,4.8rem);line-height:.95;letter-spacing:-.055em}
+.section-head p{max-width:560px;color:var(--muted);line-height:1.65;margin:0}
+.grid{display:grid;gap:18px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+.card{border:1px solid var(--line);background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border-radius:24px;padding:24px;box-shadow:0 18px 50px rgba(0,0,0,.14)}
+.card h3{margin:0 0 9px;font-size:1.06rem}.card p,.card li{color:var(--muted);line-height:1.65}.card ul{padding-left:18px;margin-bottom:0}
+.num{color:var(--gold2);font-size:.72rem;font-weight:900;letter-spacing:.18em;margin-bottom:16px}
+.feature{font-family:Georgia,serif;font-size:1.55rem;line-height:1.5;color:#fff}
+.manifesto{border:1px solid var(--line);border-radius:34px;padding:42px;background:radial-gradient(circle at 85% 15%,rgba(199,164,103,.16),transparent 35%),linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+.manifesto p{font-family:Georgia,serif;font-size:clamp(1.25rem,2.2vw,1.9rem);line-height:1.55;margin:0}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.accent{border-color:rgba(234,210,157,.26);background:rgba(199,164,103,.055)}
+.kicker{font-size:.72rem;color:var(--gold2);text-transform:uppercase;letter-spacing:.2em;font-weight:900}
+.bigword{font-size:clamp(3.2rem,8vw,7rem);font-weight:950;letter-spacing:-.07em;line-height:.9;margin:16px 0}
+.timeline{display:grid;gap:12px}
+.step{display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.badge{width:46px;height:46px;border:1px solid rgba(234,210,157,.26);border-radius:14px;display:grid;place-items:center;color:var(--gold2);font-weight:900}
+.say{padding:14px 0;border-bottom:1px solid rgba(255,255,255,.07)} .say:last-child{border:0}
+.say .no{color:#8e8a84;text-decoration:line-through}.say .yes{color:#fff;font-weight:800;margin-top:6px}
+.formcard label{display:block;color:var(--gold2);text-transform:uppercase;letter-spacing:.16em;font-size:.72rem;font-weight:900;margin-bottom:9px}
+input[type=text],textarea{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--line);color:#fff;border-radius:15px;padding:14px 15px;font:inherit;outline:none}
+textarea{min-height:105px;resize:vertical} input:focus,textarea:focus{border-color:rgba(234,210,157,.5);box-shadow:0 0 0 4px rgba(199,164,103,.055)}
+.rock{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center;border:1px solid var(--line);padding:11px;border-radius:16px;margin-top:10px}
+.rock span{width:40px;height:40px;border-radius:12px;background:rgba(199,164,103,.1);display:grid;place-items:center;color:var(--gold2)}
+.rock input{border:0;background:transparent;padding:0}.rock input:focus{box-shadow:none}
+.check{display:flex;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.07)}.check:last-child{border:0}
+.check label{display:flex;gap:10px;align-items:center}.points{color:var(--gold2);font-weight:850}
+input[type=checkbox]{accent-color:var(--gold)}
+.score{font-size:clamp(4rem,9vw,7.5rem);line-height:.85;font-weight:950;letter-spacing:-.07em;margin:18px 0 10px}.score small{font-size:1rem;color:var(--muted);letter-spacing:0}
+.bar{height:9px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:.3s}
+.activation{min-height:68vh;display:grid;place-items:center;text-align:center;border-block:1px solid var(--line);background:radial-gradient(circle at center,rgba(199,164,103,.11),transparent 38%)}
+.activation .hero-word{font-size:clamp(5rem,15vw,12rem);font-weight:950;letter-spacing:-.08em;line-height:.82}
+.pulse{animation:pulse 1.05s ease}@keyframes pulse{0%{transform:scale(1)}45%{transform:scale(1.02)}100%{transform:scale(1)}}
+footer{padding:52px 0 70px;color:var(--muted);border-top:1px solid var(--line)}
+.toast{position:fixed;right:20px;bottom:20px;background:#f2e9da;color:#16120c;padding:12px 15px;border-radius:14px;font-weight:850;opacity:0;transform:translateY(10px);transition:.25s;pointer-events:none;z-index:90}.toast.show{opacity:1;transform:none}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:7px 10px;color:var(--muted);font-size:.8rem;margin:4px 4px 0 0}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+@media(max-width:900px){.hero,.g2,.g3,.split{grid-template-columns:1fr}.visual{min-height:420px}.section-head{align-items:start;flex-direction:column}.navlinks{display:none}.manifesto{padding:28px}}
+</style>
+</head>
+<body>
+<nav><div class="shell nav">
+  <div class="brand"><div class="logo">🐐</div> LA CABRA <button onclick="testSheets()" style="padding:7px 10px;font-size:.68rem;background:transparent;color:var(--gold2);border:1px solid var(--line);margin-left:8px">PROBAR SHEETS</button> <span id="cloudStatus" style="font-size:.68rem;color:var(--muted);letter-spacing:.08em;font-weight:700">● LOCAL</span></div>
+  <div class="navlinks">
+    <a href="#identidad">Identidad</a><a href="#codigo">Código</a><a href="#areas">Áreas</a><a href="#objetivos">9 Montañas</a><a href="#hoy">Hoy</a><a href="#protocolos">Protocolos</a><a href="#score">Score</a><a href="#semanal">Semanal</a>
+  </div>
+</div></nav>
+
+<main>
+<section class="hero shell">
+  <div>
+    <div class="eyebrow">The Goat Operating System · Complete Edition</div>
+    <h1>LA<br><span>CABRA.</span></h1>
+    <p>No es una versión falsa de ti. Es la versión de ti que aparece cuando dejas de negociar con tu potencial, reduces el ruido y eliges el siguiente punto de apoyo.</p>
+    <div class="quote">“La montaña no tiene que hacerse más pequeña. Yo tengo que aprender a escalarla.”</div>
+    <div class="btns"><button class="primary" onclick="activate()">Activar modo Cabra</button><a class="btn secondary" href="#hoy">Entrar al día</a></div>
+  </div>
+  <div class="visual">
+    <div class="moon"></div><div class="vertical">CLARIDAD · ACCIÓN · ALTURA</div><div class="goat">🐐</div>
+    <svg viewBox="0 0 800 600" preserveAspectRatio="none"><defs><linearGradient id="m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c7a467" stop-opacity=".55"/><stop offset="1" stop-color="#17191c" stop-opacity=".08"/></linearGradient></defs><path d="M0 525 L150 380 L245 450 L420 175 L565 395 L655 305 L800 520 L800 600 L0 600Z" fill="url(#m)"/><path d="M0 580 L190 465 L320 520 L505 350 L800 580 L800 600 L0 600Z" fill="#090a0b" opacity=".88"/><path d="M420 175 L465 292 L401 257Z" fill="#f3ead7" opacity=".25"/></svg>
+  </div>
+</section>
+
+<section id="identidad">
+<div class="shell">
+  <div class="section-head"><h2>Quién es La Cabra.</h2><p>La Cabra es la mujer que ya dejó de negociar con su potencial.</p></div>
+  <div class="split">
+    <div class="card"><div class="kicker">Identidad</div><div class="bigword">HACE.</div>
+      <p>No corre desesperadamente. No intenta demostrar que puede con todo. No necesita aprobación. No habla demasiado de lo que va a hacer.</p>
+      <hr><p><b>Tiene ambición, pero no ansiedad.</b><br>Tiene disciplina, pero no rigidez.<br>Tiene confianza, pero no arrogancia.</p>
+    </div>
+    <div class="card accent"><div class="kicker">Principio central</div>
+      <p class="feature">La Cabra no compite con otras personas. Compite con la versión de sí misma que abandona.</p>
+      <hr>
+      <p class="feature">Problema → siguiente movimiento → ejecución → evaluación → siguiente movimiento.</p>
+      <p>No dramatiza la distancia. Pregunta: <b>“¿Dónde pongo la siguiente pata?”</b></p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="codigo">
+<div class="shell">
+  <div class="section-head"><h2>El código.</h2><p>Las leyes que sustituyen la negociación mental cuando estás cansada, dispersa o insegura.</p></div>
+  <div class="grid g3">
+    <div class="card"><div class="num">01</div><h3>La Cabra termina.</h3><p>Puede mejorar después. Primero termina. Pregunta: <b>¿Qué puedo cerrar hoy?</b></p></div>
+    <div class="card"><div class="num">02</div><h3>Hace primero lo incómodo.</h3><p>Si algo produce resistencia porque exige concentración, valentía o disciplina, probablemente allí hay crecimiento. <b>Por ahí es.</b></p></div>
+    <div class="card"><div class="num">03</div><h3>No espera motivación.</h3><p>No pregunta “¿tengo ganas?”. Pregunta: <b>¿Esto corresponde a la mujer que quiero ser?</b></p></div>
+    <div class="card"><div class="num">04</div><h3>Protege su atención.</h3><p>Su recurso más valioso es la capacidad de concentrarse. Pregunta: <b>¿Esto merece mi atención?</b></p></div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>C · A · B · R · A</h2><p>El nombre también es un sistema de decisión.</p></div>
+  <div class="grid g3">
+    <div class="card"><div class="num">C</div><h3>Claridad</h3><p>Antes de correr, define la cima. <b>¿Qué quiero realmente?</b></p></div>
+    <div class="card"><div class="num">A</div><h3>Acción</h3><p>Pensar ayuda. Pensar indefinidamente es procrastinación sofisticada. <b>Una decisión debe producir una acción.</b></p></div>
+    <div class="card"><div class="num">B</div><h3>Bravura</h3><p>Levantar la mano, presentar ideas, pedir oportunidades, decir no, defender tu trabajo, asumir liderazgo. <b>Un acto de valentía al día.</b></p></div>
+    <div class="card"><div class="num">R</div><h3>Resistencia</h3><p>Un mal día no se convierte en una mala semana. <b>Reinicia en la siguiente decisión.</b></p></div>
+    <div class="card"><div class="num">A</div><h3>Altura</h3><p>Aprender más, pensar mejor, comunicar mejor, ganar más, liderar mejor, trabajar con más impacto. <b>¿Qué me llevaría al siguiente nivel?</b></p></div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>Las dos Vivian(a)s.</h2><p>No eliminas tu humanidad. Construyes una identidad disponible para los momentos difíciles.</p></div>
+  <div class="split">
+    <div class="card"><div class="kicker">Viviana cotidiana</div><ul><li>Puede cansarse.</li><li>Puede dudar.</li><li>Puede procrastinar.</li><li>Puede sobrepensar.</li><li>Puede sentir miedo.</li><li>Puede querer esconderse.</li><li>Puede sentirse abrumada.</li></ul></div>
+    <div class="card accent"><div class="kicker">La Cabra</div><ul><li>La espalda cambia.</li><li>La mirada cambia.</li><li>La velocidad al hablar cambia.</li><li>La decisión cambia.</li><li>No pregunta cien veces qué hacer.</li></ul><p class="feature"><b>Actúa.</b></p></div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>Interruptor + uniforme.</h2><p>Los símbolos ayudan a que el personaje sea accesible cuando lo necesitas.</p></div>
+  <div class="split">
+    <div class="card"><div class="kicker">Ritual de 30 segundos</div><div class="timeline">
+      <div class="step"><div class="badge">1</div><div><b>Ponte de pie.</b><p>Interrumpe físicamente el patrón.</p></div></div>
+      <div class="step"><div class="badge">2</div><div><b>Endereza los hombros.</b><p>Cambia postura antes que pensamiento.</p></div></div>
+      <div class="step"><div class="badge">3</div><div><b>Respira profundamente.</b></div></div>
+      <div class="step"><div class="badge">4</div><div><b>Di: “Cabra.”</b></div></div>
+      <div class="step"><div class="badge">5</div><div><b>Pregunta: “¿Cuál es el siguiente movimiento?”</b><p>Y empieza inmediatamente.</p></div></div>
+    </div></div>
+    <div class="card"><div class="kicker">Uniforme Cabra</div><p class="feature">Negro + blanco + dorado.</p><p>Minimalista. Cabello organizado. Perfume específico. Un anillo. Un reloj. Un collar pequeño con una cabra o una montaña.</p><p><b>Cuando aparece el símbolo, entra el personaje.</b></p></div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>Cómo habla.</h2><p>No se vuelve agresiva. Se vuelve clara.</p></div>
+  <div class="card">
+    <div class="say"><div class="no">“Perdón, no sé si de pronto podríamos quizá…”</div><div class="yes">→ “Propongo que hagamos lo siguiente.”</div></div>
+    <div class="say"><div class="no">“Creo que tal vez podría funcionar…”</div><div class="yes">→ “Mi recomendación es esta.”</div></div>
+    <div class="say"><div class="no">“No sé si estoy equivocada…”</div><div class="yes">→ “Con la información disponible, mi lectura es la siguiente.”</div></div>
+  </div>
+</div>
+</section>
+
+<section id="areas">
+<div class="shell">
+  <div class="section-head"><h2>La Cabra en cada área.</h2><p>La identidad debe sobrevivir al contexto: trabajo, estudio, cuerpo, dinero y relaciones.</p></div>
+  <div class="grid g3">
+    <div class="card"><div class="kicker">Profesional</div><h3>Convierte caos en estructura.</h3><p>“¿Qué necesita esta conversación para avanzar?”<br>“¿Qué decisión permite tomar este dato?”<br>“¿Cuál es la historia detrás de estos números?”<br>“Lo convierto en sistema.”</p><p><b>Datos → información → decisiones → proyectos → resultados.</b></p></div>
+    <div class="card"><div class="kicker">Académica</div><h3>Todavía no lo entiendo.</h3><p>No dice “soy mala para esto”. Usa cinco pasos:</p><ol><li>Definición</li><li>Ejemplo</li><li>Matemática</li><li>Código</li><li>Explicación en sus propias palabras</li></ol><p>No necesita demostrar inteligencia. Necesita aprender.</p></div>
+    <div class="card"><div class="kicker">Física</div><h3>El cuerpo sostiene la ambición.</h3><p>“Necesito un cuerpo capaz de sostener la vida que quiero construir.”</p><p>Cada entrenamiento es evidencia: <b>soy una persona que cumple consigo misma.</b></p></div>
+    <div class="card"><div class="kicker">Financiera</div><h3>Aumenta su capacidad de generar valor.</h3><p>Invierte en conocimiento, habilidades, relaciones, reputación, activos y proyectos propios.</p><p>Su objetivo no es parecer rica. <b>Es tener libertad.</b></p></div>
+    <div class="card"><div class="kicker">Social</div><h3>Es cálida y tiene límites.</h3><p>No persigue personas. No intenta convencer a todos. No explica excesivamente sus decisiones.</p><p><b>No toda invitación merece un sí.<br>No toda crítica merece una respuesta.<br>No toda persona merece acceso a mí.</b></p></div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>Los enemigos.</h2><p>Identificar el patrón permite responder sin convertirlo en identidad.</p></div>
+  <div class="grid g2">
+    <div class="card"><h3>🐍 Comparación</h3><p>“Ella está más adelante.”</p><p class="feature">Su montaña no es mi montaña.</p></div>
+    <div class="card"><h3>🐌 Procrastinación</h3><p>“Empiezo después.”</p><p class="feature">Cinco minutos ahora.</p></div>
+    <div class="card"><h3>🦚 Perfeccionismo</h3><p>“Todavía no está perfecto.”</p><p class="feature">Primero terminado. Luego extraordinario.</p></div>
+    <div class="card"><h3>🐙 Dispersión</h3><p>“Quiero hacer ocho cosas.”</p><p class="feature">Una pata. Un punto de apoyo.</p></div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="manifesto"><div class="eyebrow">Manifiesto completo</div>
+  <p>Soy La Cabra.<br><br>
+  No necesito un camino fácil.<br>
+  Necesito un punto donde apoyar la pata.<br>
+  No espero sentirme preparada.<br>
+  Aprendo mientras avanzo.<br>
+  No abandono una montaña porque sea grande.<br>
+  No convierto un tropiezo en una identidad.<br>
+  Termino lo que comienzo.<br>
+  Protejo mi energía.<br>
+  Hablo con claridad.<br>
+  Hago cosas que me dan miedo.<br>
+  Construyo antes de anunciar.<br>
+  Cuando no sé qué hacer, encuentro el siguiente movimiento.<br>
+  Y cuando llego a una cima, miro alrededor, aprendo y busco la siguiente.</p>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>Los 10 mandamientos.</h2><p>The Goat Operating System en su forma más compacta.</p></div>
+  <div class="grid g2">
+    <div class="card"><div class="num">01</div><h3>Termino antes de perfeccionar.</h3></div>
+    <div class="card"><div class="num">02</div><h3>Hago primero lo importante, no lo fácil.</h3></div>
+    <div class="card"><div class="num">03</div><h3>No negocio con compromisos que hice conmigo misma.</h3></div>
+    <div class="card"><div class="num">04</div><h3>Una mala hora no se convierte en un mal día.</h3></div>
+    <div class="card"><div class="num">05</div><h3>Mi atención no está disponible para todo el mundo.</h3></div>
+    <div class="card"><div class="num">06</div><h3>Cuando tengo miedo, reduzco el tamaño del paso, no abandono la dirección.</h3></div>
+    <div class="card"><div class="num">07</div><h3>No necesito saberlo todo para comenzar.</h3></div>
+    <div class="card"><div class="num">08</div><h3>Cada semana debo producir algo visible.</h3></div>
+    <div class="card"><div class="num">09</div><h3>Mi palabra tiene peso: si digo que lo haré, lo hago.</h3></div>
+    <div class="card"><div class="num">10</div><h3>Siempre existe una siguiente pata.</h3></div>
+  </div>
+</div>
+</section>
+
+
+
+<section id="objetivos">
+<div class="shell">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Las 9 Montañas de La Cabra</div>
+      <h2>Mi mapa de vida.</h2>
+    </div>
+    <p>Las nueve montañas permanecen visibles, pero cada trimestre decido cuáles reciben intensidad, cuáles avanzan a ritmo sostenido y cuáles solo requieren mantenimiento.</p>
+  </div>
+
+  <div class="grid g3">
+    <div class="card formcard">
+      <div class="num">01 · INGLÉS</div>
+      <h3>Alcanzar un nivel avanzado de inglés y un resultado sobresaliente en TOEFL</h3>
+      <p><b>Cima:</b> desarrollar un dominio del inglés equivalente a un nivel C2, fortaleciendo comprensión auditiva, lectura, escritura y expresión oral, y alcanzar un resultado sobresaliente en TOEFL que evidencie ese nivel de competencia.</p>
+      <label>Indicador</label><input id="g1indicator" type="text" placeholder="Ej. mock score, nivel por habilidad, horas de exposición">
+      <label style="margin-top:14px">Meta</label><input id="g1target" type="text" placeholder="Ej. puntaje objetivo y fecha">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g1milestones" placeholder="¿Qué debe ocurrir este trimestre para demostrar progreso?"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g1habit" type="text" placeholder="Ej. 5 sesiones + 1 simulacro parcial">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g1next" type="text" placeholder="La acción concreta que toca ahora">
+    </div>
+
+    <div class="card formcard">
+      <div class="num">02 · LIDERAZGO</div>
+      <h3>Desarrollar una comunicación asertiva y una presencia sólida de liderazgo</h3>
+      <p><b>Cima:</b> fortalecer mi capacidad para comunicar ideas con claridad, seguridad, empatía y firmeza; expresar desacuerdos, establecer límites, dar y recibir retroalimentación, liderar conversaciones difíciles y proyectar una presencia profesional coherente con la líder que quiero ser.</p>
+      <label>Indicador</label><input id="g2indicator" type="text" placeholder="Ej. presentaciones, conversaciones difíciles, feedback">
+      <label style="margin-top:14px">Meta</label><input id="g2target" type="text" placeholder="¿Cómo se verá una comunicación de liderazgo consolidada?">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g2milestones" placeholder="Ej. liderar reuniones, presentar, pedir feedback"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g2habit" type="text" placeholder="Ej. 1 práctica deliberada + 1 conversación valiente">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g2next" type="text" placeholder="La conversación o práctica que toca ahora">
+    </div>
+
+    <div class="card formcard">
+      <div class="num">03 · IA</div>
+      <h3>Graduarme de la Maestría en Inteligencia Artificial con excelencia y generar impacto para Colombia</h3>
+      <p><b>Cima:</b> culminar mi Maestría en Inteligencia Artificial con un desempeño académico sobresaliente, desarrollar e implementar un proyecto de IA con aplicación real y utilidad para el país, y construir progresivamente un perfil reconocido por su conocimiento, capacidad de ejecución e impacto en inteligencia artificial.</p>
+      <label>Indicador</label><input id="g3indicator" type="text" placeholder="Ej. promedio, materias, avance de proyecto, publicaciones">
+      <label style="margin-top:14px">Meta</label><input id="g3target" type="text" placeholder="Ej. honores + proyecto implementado">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g3milestones" placeholder="Materias, prototipo, piloto, presentación, publicación"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g3habit" type="text" placeholder="Ej. bloques de estudio + avance del proyecto">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g3next" type="text" placeholder="El entregable o aprendizaje que sigue">
+    </div>
+
+    <div class="card formcard">
+      <div class="num">04 · CARRERA</div>
+      <h3>Consolidar una carrera profesional estable, significativa y alineada con mi propósito</h3>
+      <p><b>Cima:</b> lograr una vinculación laboral a término indefinido en una organización y un rol que disfrute, donde pueda crecer profesionalmente, aportar desde mis capacidades y generar impacto. Mi prioridad será explorar la posibilidad de continuar y consolidar mi carrera en iNNpulsa, sin cerrar la puerta a oportunidades que estén mejor alineadas con mi propósito y proyección profesional.</p>
+      <label>Indicador</label><input id="g4indicator" type="text" placeholder="Ej. conversaciones internas, procesos, aplicaciones, entrevistas">
+      <label style="margin-top:14px">Meta</label><input id="g4target" type="text" placeholder="Ej. vinculación indefinida + rol deseado">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g4milestones" placeholder="CV, networking, conversaciones, postulaciones, decisiones"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g4habit" type="text" placeholder="Ej. 2 acciones de carrera por semana">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g4next" type="text" placeholder="El movimiento profesional inmediato">
+    </div>
+
+    <div class="card formcard">
+      <div class="num">05 · ITALIANO</div>
+      <h3>Alcanzar un nivel B1 de italiano</h3>
+      <p><b>Cima:</b> desarrollar un dominio funcional del idioma italiano hasta alcanzar un nivel B1, que me permita comprender conversaciones cotidianas, comunicarme con autonomía, leer textos de dificultad intermedia y desenvolverme adecuadamente en situaciones personales, académicas o de viaje.</p>
+      <label>Indicador</label><input id="g5indicator" type="text" placeholder="Ej. nivel, horas, unidades completadas">
+      <label style="margin-top:14px">Meta</label><input id="g5target" type="text" placeholder="Ej. B1 y fecha objetivo">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g5milestones" placeholder="A1, A2, conversación, comprensión, evaluación"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g5habit" type="text" placeholder="Ej. 4 sesiones de 30 min">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g5next" type="text" placeholder="Lo que toca practicar ahora">
+    </div>
+
+    <div class="card formcard">
+      <div class="num">06 · FAMILIA</div>
+      <h3>Transformar y mejorar la casa de mi abuelita</h3>
+      <p><b>Cima:</b> planificar, financiar y ejecutar progresivamente las mejoras necesarias en la casa de mi abuelita, priorizando seguridad, funcionalidad, comodidad y estética, hasta convertirla en un espacio agradable, digno y bien cuidado para ella y nuestra familia.</p>
+      <label>Indicador</label><input id="g6indicator" type="text" placeholder="Ej. presupuesto, % intervenido, espacios terminados">
+      <label style="margin-top:14px">Meta</label><input id="g6target" type="text" placeholder="Ej. etapas, presupuesto total, fecha">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g6milestones" placeholder="Ej. escalera, paredes, pisos, iluminación"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g6habit" type="text" placeholder="Ej. ahorro + seguimiento de obra">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g6next" type="text" placeholder="La próxima intervención concreta">
+    </div>
+
+    <div class="card formcard">
+      <div class="num">07 · INDEPENDENCIA</div>
+      <h3>Alcanzar mi independencia personal y financiera</h3>
+      <p><b>Cima:</b> construir las condiciones económicas, profesionales, emocionales y logísticas necesarias para vivir de manera independiente, sostener mis propios gastos, administrar responsablemente mis recursos y contar con una estabilidad que me permita tomar decisiones con mayor autonomía.</p>
+      <label>Indicador</label><input id="g7indicator" type="text" placeholder="Ej. fondo de emergencia, ingreso, presupuesto, fecha">
+      <label style="margin-top:14px">Meta</label><input id="g7target" type="text" placeholder="¿Qué condiciones deben estar cumplidas?">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g7milestones" placeholder="Ahorro, presupuesto, vivienda, muebles, gastos fijos"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g7habit" type="text" placeholder="Ej. control de gastos + ahorro automático">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g7next" type="text" placeholder="La condición que toca construir ahora">
+    </div>
+
+    <div class="card formcard">
+      <div class="num">08 · CUERPO</div>
+      <h3>Construir un cuerpo fuerte, saludable y con una composición corporal que me haga sentir bien</h3>
+      <p><b>Cima:</b> mejorar progresivamente mi composición corporal mediante entrenamiento de fuerza, alimentación adecuada, descanso y hábitos sostenibles, buscando acercarme de forma segura a un peso aproximado de 50 kg y a un porcentaje de grasa corporal cercano al 15 %, siempre priorizando mi salud, energía, fuerza y bienestar.</p>
+      <label>Indicador</label><input id="g8indicator" type="text" placeholder="Ej. peso, % grasa, fuerza, medidas, energía">
+      <label style="margin-top:14px">Meta</label><input id="g8target" type="text" placeholder="Ej. rango objetivo y fecha de revisión">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g8milestones" placeholder="Fuerza, composición, hábitos, descanso"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g8habit" type="text" placeholder="Ej. entrenamientos, sueño, alimentación">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g8next" type="text" placeholder="El hábito concreto que toca sostener">
+    </div>
+
+    <div class="card formcard">
+      <div class="num">09 · FINANZAS</div>
+      <h3>Eliminar completamente la deuda mala y fortalecer mi libertad financiera</h3>
+      <p><b>Cima:</b> reducir progresivamente hasta cero las deudas de consumo que no generan patrimonio ni capacidad productiva, evitar adquirir nueva deuda innecesaria y construir una estructura financiera basada en ahorro, control de gastos, inversión y crecimiento de mis ingresos.</p>
+      <label>Indicador</label><input id="g9indicator" type="text" placeholder="Ej. saldo, tasa, cuota, % pagado">
+      <label style="margin-top:14px">Meta</label><input id="g9target" type="text" placeholder="Ej. deuda mala = 0 y fecha">
+      <label style="margin-top:14px">Hitos trimestrales</label><textarea id="g9milestones" placeholder="Pagos, reducción de saldo, fondo, inversión"></textarea>
+      <label style="margin-top:14px">Hábito semanal</label><input id="g9habit" type="text" placeholder="Ej. revisión financiera + pago programado">
+      <label style="margin-top:14px">Siguiente pata</label><input id="g9next" type="text" placeholder="El próximo pago o ajuste">
+    </div>
+  </div>
+
+  <div class="card accent" style="margin-top:20px">
+    <div class="kicker">Foco estratégico trimestral</div>
+    <h3>No escalo las nueve montañas con la misma intensidad.</h3>
+    <p>Elijo dónde colocar energía deliberada y qué objetivos solo deben mantenerse vivos.</p>
+    <div class="grid g3">
+      <div class="formcard"><label>Montaña principal</label><input id="focus1" type="text" placeholder="La que cambia el trimestre"></div>
+      <div class="formcard"><label>Montaña secundaria</label><input id="focus2" type="text" placeholder="La segunda prioridad"></div>
+      <div class="formcard"><label>Montañas en mantenimiento</label><input id="focus3" type="text" placeholder="Las que solo necesitan continuidad"></div>
+    </div>
+    <div style="margin-top:16px"><button class="primary" onclick="saveGoals()">Guardar mis 9 montañas</button></div>
+  </div>
+</div>
+</section>
+
+<section id="hoy">
+<div class="shell">
+  <div class="section-head"><div><div class="eyebrow">Daily Command Center</div><h2>La montaña de hoy.</h2></div><p id="date"></p></div>
+  <div class="split">
+    <div class="card formcard"><label>Mi montaña de hoy es</label><input id="mountain" type="text" placeholder="Define la cima de hoy">
+      <div class="rock"><span>◆</span><input id="r1" type="text" placeholder="ROCA 1 · Impacto"></div>
+      <div class="rock"><span>✓</span><input id="r2" type="text" placeholder="ROCA 2 · Cierre"></div>
+      <div class="rock"><span>↑</span><input id="r3" type="text" placeholder="ROCA 3 · Valentía"></div>
+      <div class="btns" style="margin-top:16px"><button class="primary" onclick="saveDay()">Guardar día</button><button class="secondary" onclick="clearDay()">Reiniciar</button></div>
+    </div>
+    <div class="card accent"><div class="kicker">Arranque Cabra — mañana</div>
+      <div class="timeline">
+        <div class="step"><div class="badge">1</div><div><b>Cuerpo</b><p>Agua, movimiento, postura.</p></div></div>
+        <div class="step"><div class="badge">2</div><div><b>Mente</b><p>3 minutos de silencio, respiración, diario o lectura.</p></div></div>
+        <div class="step"><div class="badge">3</div><div><b>Dirección</b><p>Escribe la montaña y las tres rocas.</p></div></div>
+      </div>
+      <p class="feature">“No tengo que conquistar toda la montaña hoy. Solo ganar altura.”</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="protocolos">
+<div class="shell">
+  <div class="section-head"><h2>Protocolos operativos.</h2><p>Cuando tu mente quiera debatir eternamente, deja que el sistema decida.</p></div>
+  <div class="grid g2">
+    <div class="card accent"><div class="kicker">Modo ataque</div><h3>CABRA 50</h3><p><b>50 minutos sin interrupciones + 10 minutos de recuperación.</b></p><p>Durante esos 50 minutos solo existe una montaña. Si aparece otra tarea, la anotas y sigues.</p><p class="feature">Una ventana. Una misión.</p><p>En un día importante: 2 a 4 CABRA 50.</p></div>
+    <div class="card accent"><div class="kicker">Anti-procrastinación</div><h3>PROTOCOLO PATA</h3>
+      <div class="timeline"><div class="step"><div class="badge">P</div><div><b>Para.</b><p>Reconoce que estás evitando algo.</p></div></div><div class="step"><div class="badge">A</div><div><b>Aísla.</b><p>Define la acción exacta.</p></div></div><div class="step"><div class="badge">T</div><div><b>Tamaño mínimo.</b><p>Hazla tan pequeña que puedas comenzar en 5 minutos.</p></div></div><div class="step"><div class="badge">A</div><div><b>Actúa.</b><p>Sin otra conversación interna.</p></div></div></div>
+    </div>
+    <div class="card"><div class="kicker">Día malo</div><h3>MODO MONTAÑA BAJA</h3><ul><li><b>Cuerpo:</b> 10 minutos de movimiento.</li><li><b>Responsabilidad:</b> termina una tarea importante.</li><li><b>Crecimiento:</b> 15 minutos de estudio.</li><li><b>Orden:</b> prepara mañana.</li></ul><p class="feature">Nunca cero.</p></div>
+    <div class="card"><div class="kicker">Decisiones</div><h3>CABRA DECIDE</h3><ol><li>¿Esto me acerca o me aleja?</li><li>¿Lo evito por miedo o porque realmente no conviene?</li><li>¿Qué decisión me respetaría más dentro de un año?</li><li>¿Cuál es la siguiente acción irreversible más pequeña?</li></ol><p>No necesitas decidir toda tu vida. Necesitas decidir el siguiente experimento.</p></div>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>La regla del acto de valentía.</h2><p>Un pequeño acto incómodo cada día.</p></div>
+  <div class="card">
+    <span class="chip">Pedir algo</span><span class="chip">Presentar una idea</span><span class="chip">Enviar una propuesta</span><span class="chip">Hacer una llamada</span><span class="chip">Hablar en una reunión</span><span class="chip">Poner un límite</span><span class="chip">Decir que no</span><span class="chip">Publicar algo</span><span class="chip">Solicitar una oportunidad</span><span class="chip">Admitir que no sabes algo</span>
+    <p class="feature" style="margin-top:20px">No tiene que ser heroico. Tiene que sacarte ligeramente de tu territorio conocido.</p>
+  </div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>Cierre Cabra — noche.</h2><p>Cinco minutos. No hagas un interrogatorio existencial.</p></div>
+  <div class="grid g2">
+    <div class="card formcard"><label>¿Qué conquisté hoy?</label><textarea id="n1"></textarea></div>
+    <div class="card formcard"><label>¿Dónde me saboteé?</label><textarea id="n2"></textarea></div>
+    <div class="card formcard"><label>¿Qué aprendí?</label><textarea id="n3"></textarea></div>
+    <div class="card formcard"><label>¿Cuál es mi primera pata mañana?</label><textarea id="n4"></textarea></div>
+  </div>
+  <div class="btns" style="margin-top:16px"><button class="primary" onclick="saveNight()">Cerrar el día</button></div>
+  <p class="feature">El trabajo terminó. La Cabra también descansa.</p>
+</div>
+</section>
+
+<section id="score">
+<div class="shell">
+  <div class="section-head"><h2>Goat Score.</h2><p>No mide tu valor. Mide si actuaste en dirección a la persona que quieres construir. Objetivo: promedio semanal ≥ 75.</p></div>
+  <div class="split">
+    <div class="card">
+      <div class="check"><label><input class="sc" data-p="20" type="checkbox"> Trabajo profundo</label><span class="points">20</span></div>
+      <div class="check"><label><input class="sc" data-p="20" type="checkbox"> Avance en prioridad principal</label><span class="points">20</span></div>
+      <div class="check"><label><input class="sc" data-p="15" type="checkbox"> Cuerpo</label><span class="points">15</span></div>
+      <div class="check"><label><input class="sc" data-p="15" type="checkbox"> Aprendizaje</label><span class="points">15</span></div>
+      <div class="check"><label><input class="sc" data-p="10" type="checkbox"> Acto de valentía</label><span class="points">10</span></div>
+      <div class="check"><label><input class="sc" data-p="10" type="checkbox"> Cerrar pendientes</label><span class="points">10</span></div>
+      <div class="check"><label><input class="sc" data-p="10" type="checkbox"> Cuidar energía / descanso</label><span class="points">10</span></div>
+    </div>
+    <div class="card accent"><div class="kicker">Hoy</div><div class="score"><span id="scorev">0</span><small>/100</small></div><div class="bar"><div class="fill" id="fill"></div></div><p id="scoremsg" class="feature">Una pata primero.</p><p>No necesitas 100. Estamos construyendo consistencia, no otra forma sofisticada de perfeccionismo.</p></div>
+  </div>
+</div>
+</section>
+
+<section class="activation" id="activation">
+<div class="shell"><div class="eyebrow">Frase de activación</div><div class="hero-word">SUBIMOS.</div><p id="activateSub">Cuando procrastinas. Cuando tienes miedo. Cuando no entiendes. Cuando te rechazan. Cuando estás cansada.</p><button class="primary" onclick="activate()">ACTIVAR MODO CABRA</button><p class="feature" style="margin-top:28px">Cuando estés cansada: “Una pata más.”</p></div>
+</section>
+
+<section id="semanal">
+<div class="shell">
+  <div class="section-head"><div><div class="eyebrow">Consejo de la montaña</div><h2>Revisión semanal.</h2></div><p>Treinta minutos. Verdad, aprendizaje y dirección.</p></div>
+  <div class="grid g2">
+    <div class="card formcard"><label>¿Qué montaña subí esta semana?</label><textarea id="w1"></textarea></div>
+    <div class="card formcard"><label>¿Qué sigo evitando?</label><textarea id="w2"></textarea></div>
+    <div class="card formcard"><label>¿Qué consumió energía sin producir resultados?</label><textarea id="w3"></textarea></div>
+    <div class="card formcard"><label>¿Qué aprendí?</label><textarea id="w4"></textarea></div>
+    <div class="card formcard"><label>¿Qué debería dejar de hacer?</label><textarea id="w5"></textarea></div>
+    <div class="card formcard"><label>¿Cuál es mi montaña principal de la próxima semana?</label><textarea id="w6"></textarea></div>
+  </div>
+  <p class="feature">¿Estoy ocupada o realmente estoy ganando altura?</p>
+  <button class="primary" onclick="saveWeek()">Guardar revisión semanal</button>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>Las montañas.</h2><p>No escalas cinco montañas al mismo tiempo. Cada trimestre decides dónde está la altura.</p></div>
+  <div class="grid g3">
+    <div class="card formcard"><div class="kicker">Montaña principal</div><p>El gran objetivo.</p><textarea id="q1" placeholder="¿Cuál es la cima principal de este trimestre?"></textarea></div>
+    <div class="card formcard"><div class="kicker">Montaña secundaria</div><p>Algo importante que quieres desarrollar.</p><textarea id="q2"></textarea></div>
+    <div class="card formcard"><div class="kicker">Mantenimiento</div><p>Áreas que necesitas sostener sin convertirlas en el centro.</p><textarea id="q3" placeholder="Cuerpo, trabajo, relaciones, finanzas..."></textarea></div>
+  </div>
+  <div style="margin-top:16px"><button class="primary" onclick="saveQuarter()">Guardar mis montañas</button></div>
+</div>
+</section>
+
+<section>
+<div class="shell">
+  <div class="section-head"><h2>El personaje.</h2><p>Cómo se ve cuando entra en una habitación.</p></div>
+  <div class="grid g3">
+    <div class="card"><div class="kicker">Postura</div><h3>Erguida.</h3></div>
+    <div class="card"><div class="kicker">Movimiento</div><h3>Tranquilo.</h3></div>
+    <div class="card"><div class="kicker">Voz</div><h3>Clara y un poco más lenta.</h3></div>
+    <div class="card"><div class="kicker">Palabras</div><h3>Pocas.</h3></div>
+    <div class="card"><div class="kicker">Principio</div><h3>No sobreexplicar.</h3></div>
+    <div class="card"><div class="kicker">Mirada</div><h3>Sostenida.</h3></div>
+    <div class="card"><div class="kicker">Decisiones</div><h3>Concretas.</h3></div>
+    <div class="card"><div class="kicker">Trabajo</div><h3>Profundo.</h3></div>
+    <div class="card"><div class="kicker">Estándar</div><h3>Terminar.</h3></div>
+  </div>
+</div>
+</section>
+</main>
+
+<footer><div class="shell"><div class="brand">🐐 LA CABRA · COMPLETE EDITION</div><p>Claridad · Acción · Bravura · Resistencia · Altura</p><p>“¿Qué haría La Cabra ahora?” · “¿Qué decisión respetaría más mañana?”</p></div></footer>
+<div class="toast" id="toast">Guardado.</div>
+
+<script>
+/* =========================================================
+   GOOGLE SHEETS SYNC
+   1) Despliega el Apps Script incluido con esta landing.
+   2) Copia la URL terminada en /exec.
+   3) Pégala entre las comillas de APPS_SCRIPT_URL.
+   ========================================================= */
+const APPS_SCRIPT_URL = "PEGA_AQUI_LA_URL_DEL_WEB_APP";
+
+function cloudEnabled(){
+  return APPS_SCRIPT_URL.startsWith("https://script.google.com/");
+}
+function setCloudStatus(label, ok=true){
+  const el=document.getElementById("cloudStatus");
+  if(!el)return;
+  el.textContent="● "+label;
+  el.style.color=ok ? "var(--gold2)" : "var(--muted)";
+}
+async function testSheets(){
+  if(!cloudEnabled()){
+    alert("Primero pega la URL /exec de Apps Script en APPS_SCRIPT_URL.");
+    return;
+  }
+  await sendToSheets("test",{message:"Prueba desde LA CABRA",date:new Date().toISOString()});
+  alert("Prueba enviada. Revisa la pestaña Sistema en Google Sheets.");
+}
+
+async function sendToSheets(type, data){
+  if(!cloudEnabled()){ setCloudStatus("LOCAL"); return false; }
+  setCloudStatus("SINCRONIZANDO…");
+  try{
+    const body = new URLSearchParams();
+    body.set("payload", JSON.stringify({type, data, sentAt:new Date().toISOString()}));
+    await fetch(APPS_SCRIPT_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+      body
+    });
+    setCloudStatus("SHEETS");
+    return true;
+  }catch(e){
+    setCloudStatus("SIN CONEXIÓN",false);
+    return false;
+  }
+}
+
+const dkey=()=>new Date().toISOString().slice(0,10);
+const wkey=()=>{const d=new Date(),j=new Date(d.getFullYear(),0,1),n=Math.floor((d-j)/86400000);return d.getFullYear()+"-W"+Math.ceil((n+j.getDay()+1)/7)}
+const qkey=()=>{const d=new Date();return d.getFullYear()+"-Q"+(Math.floor(d.getMonth()/3)+1)}
+const $=id=>document.getElementById(id);
+function toast(t="Guardado."){const x=$("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),1600)}
+function saveJSON(k,o){localStorage.setItem(k,JSON.stringify(o))}
+function loadJSON(k){try{return JSON.parse(localStorage.getItem(k)||"null")}catch(e){return null}}
+function saveDay(){
+  const data={
+    date:dkey(),
+    mountain:$("mountain").value,
+    r1:$("r1").value,
+    r2:$("r2").value,
+    r3:$("r3").value,
+    checks:[...document.querySelectorAll(".sc")].map(x=>x.checked)
+  };
+  saveJSON("goat-day-"+dkey(),data);
+  sendToSheets("daily",data);
+  toast("Día guardado localmente y enviado a Sheets.");
+}
+function loadDay(){const x=loadJSON("goat-day-"+dkey());if(!x)return;$("mountain").value=x.mountain||"";$("r1").value=x.r1||"";$("r2").value=x.r2||"";$("r3").value=x.r3||"";[...document.querySelectorAll(".sc")].forEach((e,i)=>e.checked=!!(x.checks||[])[i])}
+function clearDay(){if(!confirm("¿Reiniciar el tablero de hoy?"))return;localStorage.removeItem("goat-day-"+dkey());["mountain","r1","r2","r3"].forEach(id=>$(id).value="");document.querySelectorAll(".sc").forEach(x=>x.checked=false);score();toast("Tablero reiniciado.")}
+function saveNight(){
+  const o={date:dkey()};
+  for(let i=1;i<=4;i++) o["n"+i]=$("n"+i).value;
+  saveJSON("goat-night-"+dkey(),o);
+  sendToSheets("night",o);
+  toast("Cierre del día enviado a Sheets.");
+}
+function loadNight(){const x=loadJSON("goat-night-"+dkey());if(!x)return;for(let i=1;i<=4;i++)$("n"+i).value=x["n"+i]||""}
+function saveWeek(){
+  const o={week:wkey()};
+  for(let i=1;i<=6;i++) o["w"+i]=$("w"+i).value;
+  saveJSON("goat-week-"+wkey(),o);
+  sendToSheets("weekly",o);
+  toast("Revisión semanal enviada a Sheets.");
+}
+function loadWeek(){const x=loadJSON("goat-week-"+wkey());if(!x)return;for(let i=1;i<=6;i++)$("w"+i).value=x["w"+i]||""}
+function saveQuarter(){
+  const o={quarter:qkey(),q1:$("q1").value,q2:$("q2").value,q3:$("q3").value};
+  saveJSON("goat-quarter-"+qkey(),o);
+  sendToSheets("quarter",o);
+  toast("Foco trimestral enviado a Sheets.");
+}
+function loadQuarter(){const x=loadJSON("goat-quarter-"+qkey());if(!x)return;["q1","q2","q3"].forEach(id=>$(id).value=x[id]||"")}
+
+function saveGoals(){
+  let o={};
+  for(let i=1;i<=9;i++){
+    ["indicator","target","milestones","habit","next"].forEach(k=>{
+      o["g"+i+k] = $("g"+i+k).value;
+    });
+  }
+  o.focus1=$("focus1").value;o.focus2=$("focus2").value;o.focus3=$("focus3").value;
+  saveJSON("goat-goals",o);sendToSheets("goals",o);toast("Tus 9 montañas quedaron guardadas.");
+}
+function loadGoals(){
+  const x=loadJSON("goat-goals");
+  if(!x)return;
+  for(let i=1;i<=9;i++){
+    ["indicator","target","milestones","habit","next"].forEach(k=>{
+      $("g"+i+k).value = x["g"+i+k] || "";
+    });
+  }
+  $("focus1").value=x.focus1||"";
+  $("focus2").value=x.focus2||"";
+  $("focus3").value=x.focus3||"";
+}
+
+function score(){let s=0;document.querySelectorAll(".sc").forEach(x=>{if(x.checked)s+=+x.dataset.p});$("scorev").textContent=s;$("fill").style.width=s+"%";let m="Una pata primero.";if(s>=90)m="Día de cima. No lo minimices.";else if(s>=75)m="Estás ganando altura.";else if(s>=50)m="Buen terreno recorrido. Cierra fuerte.";else if(s>0)m="No necesitas rescatar todo el día. Solo la siguiente decisión.";$("scoremsg").textContent=m}
+function activate(){const a=$("activation");$("activateSub").textContent="Hombros atrás. Respiración larga. Elige la siguiente pata y empieza.";a.classList.remove("pulse");void a.offsetWidth;a.classList.add("pulse");a.scrollIntoView({behavior:"smooth",block:"center"})}
+$("date").textContent=new Intl.DateTimeFormat("es-CO",{weekday:"long",year:"numeric",month:"long",day:"numeric"}).format(new Date());
+document.querySelectorAll(".sc").forEach(x=>x.addEventListener("change",()=>{
+  score();saveDay();
+  const c=[...document.querySelectorAll(".sc")].map(x=>x.checked);
+  const total=[...document.querySelectorAll(".sc")].reduce((s,x)=>s+(x.checked?+x.dataset.p:0),0);
+  sendToSheets("score",{date:dkey(),checks:c,total});
+}));
+["mountain","r1","r2","r3"].forEach(id=>$(id).addEventListener("change",saveDay));
+loadDay();loadNight();loadWeek();loadQuarter();loadGoals();score();setCloudStatus(cloudEnabled()?"SHEETS":"LOCAL");
+</script>
+</body>
+</html>
